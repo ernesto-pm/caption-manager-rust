@@ -1,25 +1,36 @@
+use std::collections::BTreeSet;
 use crate::models::Dataset;
+use crate::Window;
+use egui::{Context};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
-pub struct AppState {
+pub struct App {
     datasets: Vec<Dataset>,
     temp_new_dataset: Dataset,
-    show_new_dataset_form: bool
+
+    #[serde(skip)]
+    windows: Vec<Box<dyn Window>>,
+    open: BTreeSet<String>,
 }
 
-impl Default for AppState {
+impl Default for App {
     fn default() -> Self {
+        let mut open = BTreeSet::new();
+
         Self {
             datasets: Vec::new(),
             temp_new_dataset: Dataset::default(),
-            show_new_dataset_form: false
+            open: open,
+            windows: vec![
+                Box::<super::new_dataset::NewDatasetWindow>::default()
+            ],
         }
     }
 }
 
-impl AppState {
+impl App {
     /// Called once before the first frame.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // This is also where you can customize the look and feel of egui using
@@ -35,9 +46,21 @@ impl AppState {
 
         Default::default()
     }
+
+    pub fn windows(&mut self, ctx: &Context) {
+        // ToDo: I think in here is where we should pass the state of our app?
+        // Idea: Create an "appState" struct and in the trait def we specify we are also passing a ref to such state,
+        // we then pass the reference down to the UI method in case we need to modify the top level "state"
+        let Self {windows, open, .. } = self;
+        for window in windows {
+            let mut is_open = open.contains(window.name());
+            window.show(ctx, &mut is_open);
+            set_open(open, window.name(), is_open);
+        }
+    }
 }
 
-impl eframe::App for AppState {
+impl eframe::App for App {
     /// Called by the framework to save state before shutdown.
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
         eframe::set_value(storage, eframe::APP_KEY, self);
@@ -54,8 +77,9 @@ impl eframe::App for AppState {
             egui::menu::bar(ui, |ui| {
                 ui.menu_button("File", |ui| {
                     if ui.button("New dataset").clicked() {
-                        self.show_new_dataset_form = true;
-                        ui.close_menu();
+                        set_open(&mut self.open, "New Dataset :]", true);
+                        //self.show_new_dataset_form = true;
+                        //ui.close_menu();
                     }
                 });
 
@@ -72,26 +96,24 @@ impl eframe::App for AppState {
                     ui.label(&dataset.name);
                 }
             });
-
-            ui.separator();
-
-            ui.vertical(|ui| {
-                ui.text_edit_singleline(&mut self.temp_new_dataset.name);
-                ui.text_edit_singleline(&mut self.temp_new_dataset.directory_abs_path);
-
-                if ui.button("add").clicked() {
-                    self.datasets.push(self.temp_new_dataset.clone());
-                }
-            });
-
-            if self.show_new_dataset_form {
-                egui::Window::new("Add new dataset")
-                    .open(&mut self.show_new_dataset_form)
-                    .show(ctx, |ui| {
-                        ui.heading("New dataset");
-                    });
-            }
-
         });
+
+        self.windows(ctx);
+    }
+
+
+}
+
+// ----------------------------------------------------------------------------
+
+fn set_open(open: &mut BTreeSet<String>, key: &'static str, is_open: bool) {
+    if is_open {
+        if !open.contains(key) {
+            open.insert(key.to_owned());
+        }
+    } else {
+        open.remove(key);
     }
 }
+
+// ----------------------------------------------------------------------------

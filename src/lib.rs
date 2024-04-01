@@ -1,7 +1,7 @@
 mod app;
 mod models;
 
-pub use app::AppState;
+pub use app::App;
 
 pub mod new_dataset;
 

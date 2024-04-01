@@ -1,4 +1,4 @@
-use caption_manager_rust::AppState;
+use caption_manager_rust::App;
 
 fn main() -> eframe::Result<()> {
 
@@ -13,6 +13,6 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "eframe template",
         native_options,
-        Box::new(|cc| Box::new(caption_manager_rust::AppState::new(cc))),
+        Box::new(|cc| Box::new(caption_manager_rust::App::new(cc))),
     )
 }
