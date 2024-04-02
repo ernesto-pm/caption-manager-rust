@@ -51,9 +51,6 @@ impl App {
     }
 
     pub fn windows(&mut self, ctx: &Context) {
-        // ToDo: I think in here is where we should pass the state of our app?
-        // Idea: Create an "appState" struct and in the trait def we specify we are also passing a ref to such state,
-        // we then pass the reference down to the UI method in case we need to modify the top level "state"
         let Self {windows, open, .. } = self;
         for window in windows {
             let mut is_open = open.contains(window.name());
