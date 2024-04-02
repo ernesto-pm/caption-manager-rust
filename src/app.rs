@@ -2,13 +2,15 @@ use std::collections::BTreeSet;
 use crate::models::Dataset;
 use crate::Window;
 use egui::{Context};
+use crate::app_state::AppState;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct App {
-    datasets: Vec<Dataset>,
-    temp_new_dataset: Dataset,
+    app_state: AppState,
+    //datasets: Vec<Dataset>,
+    //temp_new_dataset: Dataset,
 
     #[serde(skip)]
     windows: Vec<Box<dyn Window>>,
@@ -20,8 +22,9 @@ impl Default for App {
         let mut open = BTreeSet::new();
 
         Self {
-            datasets: Vec::new(),
-            temp_new_dataset: Dataset::default(),
+            //datasets: Vec::new(),
+            //temp_new_dataset: Dataset::default(),
+            app_state: AppState::default(),
             open: open,
             windows: vec![
                 Box::<super::new_dataset::NewDatasetWindow>::default()
@@ -54,7 +57,7 @@ impl App {
         let Self {windows, open, .. } = self;
         for window in windows {
             let mut is_open = open.contains(window.name());
-            window.show(ctx, &mut is_open);
+            window.show(ctx, &mut is_open, &mut self.app_state);
             set_open(open, window.name(), is_open);
         }
     }
@@ -92,7 +95,7 @@ impl eframe::App for App {
             ui.heading("Dataset Manager");
 
             ui.vertical(|ui| {
-                for dataset in &self.datasets {
+                for dataset in &self.app_state.datasets {
                     ui.label(&dataset.name);
                 }
             });

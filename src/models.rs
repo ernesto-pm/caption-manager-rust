@@ -1,5 +1,4 @@
-#[derive(serde::Deserialize, serde::Serialize)]
-#[derive(Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Clone)]
 #[serde(default)]
 pub struct Dataset {
     pub name: String,
