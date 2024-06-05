@@ -76,10 +76,12 @@ impl eframe::App for App {
 
             egui::menu::bar(ui, |ui| {
                 ui.menu_button("File", |ui| {
-                    if ui.button("New dataset").clicked() {
-                        set_open(&mut self.open, "New Dataset :]", true);
-                        //self.show_new_dataset_form = true;
-                        //ui.close_menu();
+                    // or we can destructure let Self {windows, .. } = self; instead, which rust assumes is going to mutate the self. struct
+                    for window in &mut self.windows {
+                        if ui.button(window.name()).clicked() {
+                            set_open(&mut self.open, window.name(), true);
+                            ui.close_menu();
+                        }
                     }
                 });
 
@@ -89,7 +91,7 @@ impl eframe::App for App {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
-            ui.heading("Dataset Manager");
+            ui.heading("Hello world");
 
             ui.vertical(|ui| {
                 for dataset in &self.app_state.datasets {

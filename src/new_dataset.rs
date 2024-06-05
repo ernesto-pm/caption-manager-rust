@@ -19,7 +19,7 @@ impl Default for NewDatasetWindow {
 
 impl super::Window for NewDatasetWindow {
     fn name(&self) -> &'static str {
-        "New Dataset :]"
+        "Create Dataset"
     }
 
     fn show(&mut self, ctx: &Context, open: &mut bool, app_state: &mut AppState) {
